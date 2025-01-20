@@ -1,12 +1,14 @@
 #!/bin/bash
 
 # Check if .env file is provided
-if [ "$#" -ne 1 ]; then
-    echo "Usage: $0 <path-to-env-file>"
+if [ "$#" -lt 1 ]; then
+    echo "Usage: $0 <path-to-env-file> [additional infisical parameters...]"
+    echo "Example: $0 .env --env=prod --silent"
     exit 1
 fi
 
 ENV_FILE="$1"
+shift  # Remove the first argument (ENV_FILE) from the arguments list
 
 # Check if the file exists
 if [ ! -f "$ENV_FILE" ]; then
@@ -15,9 +17,9 @@ if [ ! -f "$ENV_FILE" ]; then
 fi
 
 # Read .env file, ignore comments and empty lines
-# Build the infisical command
-COMMAND="infisical secrets set"
-DISPLAY_COMMAND="infisical secrets set"
+# Build the infisical command with additional parameters
+COMMAND="infisical secrets set $*"  # Add any additional parameters
+DISPLAY_COMMAND="infisical secrets set $*"
 while IFS= read -r line || [ -n "$line" ]; do
     # Skip empty lines and comments
     if [[ -z "$line" ]] || [[ "$line" =~ ^[[:space:]]*# ]]; then
@@ -33,9 +35,9 @@ while IFS= read -r line || [ -n "$line" ]; do
 done < "$ENV_FILE"
 
 # Execute the command if we have variables to set
-if [ "$COMMAND" != "infisical secrets set" ]; then
+if [ "$COMMAND" != "infisical secrets set $*" ]; then
     echo "Executing: $DISPLAY_COMMAND"
-    eval "$COMMAND --silent --env staging"
+    eval "$COMMAND"
 else
     echo "No valid environment variables found in $ENV_FILE"
     exit 1
